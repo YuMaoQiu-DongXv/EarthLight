@@ -6,3 +6,7 @@ desktop.ini
 # 开发临时：无头浏览器截图与探针脚本
 shots/
 *.log
+
+# 校验用的预览图，仓库里不留
+data/*.png
+src/*.png

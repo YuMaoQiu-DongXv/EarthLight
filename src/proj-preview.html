@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Earthlight · 五种地图投影预览</title>
+<style>
+  :root {
+    --bg: #0b0f14;
+    --card: #121821;
+    --line: #28313d;
+    --ink: #e6edf3;
+    --muted: #8b98a9;
+    --meridian: #4b9fe1;
+    --parallel: #e08a4b;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background:
+      radial-gradient(1100px 620px at 50% -18%, #172330 0%, rgba(11,15,20,0) 68%),
+      var(--bg);
+    color: var(--ink);
+    font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  }
+  header { flex: 0 0 auto; padding: 14px 20px 9px; }
+  h1 { margin: 0 0 4px; font-size: 20px; font-weight: 600; letter-spacing: .02em; }
+  header p { margin: 0; color: var(--muted); font-size: 12.5px; }
+  main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 4px 16px 16px;
+  }
+  .card {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 9px 12px 8px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: linear-gradient(180deg, #151c26 0%, #10161e 100%);
+    overflow: hidden;
+  }
+  .head { flex: 0 0 auto; display: flex; align-items: baseline; gap: 8px; }
+  .card h2 { margin: 0; font-size: 15px; font-weight: 600; }
+  .card code {
+    padding: 1px 5px;
+    border: 1px solid #222b36;
+    border-radius: 4px;
+    background: #0b0f14;
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .meta {
+    flex: 0 0 auto;
+    margin: 2px 0 4px;
+    color: var(--muted);
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .plot { position: relative; flex: 1 1 0; min-height: 0; }
+  .plot svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .map-fill { fill: rgba(75, 159, 225, 0.075); }
+  .meridian { fill: none; stroke: var(--meridian); stroke-width: 0.0045; stroke-opacity: 0.62; }
+  .parallel { fill: none; stroke: var(--parallel); stroke-width: 0.0045; stroke-opacity: 0.58; }
+  .prime { stroke-width: 0.0065; stroke-opacity: 0.9; }
+  .outline { fill: none; stroke: #f0f6fc; stroke-width: 0.009; stroke-linejoin: round; }
+  .info { justify-content: flex-start; }
+  .info h2 { font-size: 15px; margin: 0 0 7px; }
+  .info ul { margin: 0; padding: 0; list-style: none; }
+  .info li {
+    padding: 5px 0;
+    border-bottom: 1px dashed #222b36;
+    color: #c4cfdb;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  .info li:last-child { border-bottom: 0; }
+  .info b { color: var(--ink); font-weight: 600; }
+  .legend { display: flex; gap: 14px; margin-top: 9px; font-size: 11.5px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .swatch { width: 14px; height: 2px; border-radius: 2px; display: inline-block; }
+  .swatch.mer { background: var(--meridian); }
+  .swatch.par { background: var(--parallel); }
+  .swatch.out { background: #f0f6fc; }
+  .note { margin-top: auto; padding-top: 8px; color: #718096; font-size: 11px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<header>
+  <h1>世界地图投影 · 预览</h1>
+  <p>统一归一化：整幅宽 = 2；经线每 30°，纬线每 30°；经纬网裁剪在 outline 内。</p>
+</header>
+<main id="grid"></main>
+
+<script src="./projections.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var grid = document.getElementById('grid');
+  var keys = ['equirect', 'mercator', 'mollweide', 'robinson', 'winkel3'];
+  var hints = {
+    equirect: '矩形，2:1',
+    mercator: '高矩形，约 2:1.877',
+    mollweide: '椭圆，2:1',
+    robinson: '弧边鼓形，上下平边',
+    winkel3: '椭圆状，上下平边'
+  };
+  // 所有投影共用同一比例尺，便于直接比较高度；y 方向留 0.98 的半高。
+  var VIEWBOX = '-1.07 -0.98 2.14 1.96';
+  var XLIMIT = 1.07;
+
+  function svgEl(name, attrs) {
+    var node = document.createElementNS(NS, name);
+    if (attrs) {
+      for (var k in attrs) {
+        if (Object.prototype.hasOwnProperty.call(attrs, k)) node.setAttribute(k, attrs[k]);
+      }
+    }
+    return node;
+  }
+
+  function mapPath(proj) {
+    var pts = proj.outline();
+    var d = [];
+    for (var i = 0; i < pts.length; i++) {
+      var x = Math.max(-XLIMIT, Math.min(XLIMIT, pts[i][0]));
+      var y = -pts[i][1]; // SVG y 向下
+      d.push((i === 0 ? 'M' : 'L') + x.toFixed(6) + ' ' + y.toFixed(6));
+    }
+    d.push('Z');
+    return d.join('');
+  }
+
+  function pathFor(proj, pts) {
+    var d = [];
+    for (var i = 0; i < pts.length; i++) {
+      d.push((i === 0 ? 'M' : 'L') + pts[i][0].toFixed(6) + ' ' + (-pts[i][1]).toFixed(6));
+    }
+    return d.join('');
+  }
+
+  function addGraticule(proj, group) {
+    var maxLat = proj.key === 'mercator' ? 84 : 90;
+    var lat, lon, i, pts;
+
+    // 经线：每 30°；采样纬度每 2°。
+    for (lon = -180; lon <= 180; lon += 30) {
+      pts = [];
+      for (i = 0; i <= maxLat / 2; i++) {
+        lat = -maxLat + i * 2;
+        var q = proj.f(lat, lon);
+        pts.push([q.x, q.y]);
+      }
+      var mer = svgEl('path', {
+        'class': 'meridian' + (lon === 0 ? ' prime' : ''),
+        d: pathFor(proj, pts)
+      });
+      group.appendChild(mer);
+    }
+
+    // 纬线：每 30°；经度每 2°。Mercator 的 ±90° 已截断，跳过。
+    for (lat = -90; lat <= 90; lat += 30) {
+      if (Math.abs(lat) > maxLat) continue;
+      pts = [];
+      for (i = 0; i <= 180; i++) {
+        lon = -180 + i * 2;
+        var p = proj.f(lat, lon);
+        pts.push([p.x, p.y]);
+      }
+      var par = svgEl('path', {
+        'class': 'parallel' + (lat === 0 ? ' prime' : ''),
+        d: pathFor(proj, pts)
+      });
+      group.appendChild(par);
+    }
+  }
+
+  function buildCard(proj, index) {
+    var card = document.createElement('article');
+    card.className = 'card';
+
+    var head = document.createElement('div');
+    head.className = 'head';
+    var h2 = document.createElement('h2');
+    h2.textContent = proj.name;
+    var code = document.createElement('code');
+    code.textContent = proj.key;
+    head.appendChild(h2);
+    head.appendChild(code);
+    card.appendChild(head);
+
+    var meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = 'aspect 高/宽 = ' + proj.aspect.toFixed(6) +
+      ' · ' + (proj.inverse ? '提供 inverse' : '无闭式 inverse');
+    card.appendChild(meta);
+
+    var plot = document.createElement('div');
+    plot.className = 'plot';
+    var svg = svgEl('svg', {
+      viewBox: VIEWBOX,
+      preserveAspectRatio: 'xMidYMid meet',
+      role: 'img',
+      'aria-label': proj.name + ' 投影'
+    });
+
+    var d = mapPath(proj);
+    var clipId = 'clip-' + index;
+    var defs = svgEl('defs');
+    var clip = svgEl('clipPath', { id: clipId, clipPathUnits: 'userSpaceOnUse' });
+    clip.appendChild(svgEl('path', { d: d }));
+    defs.appendChild(clip);
+    svg.appendChild(defs);
+
+    svg.appendChild(svgEl('path', { 'class': 'map-fill', d: d }));
+
+    var graticule = svgEl('g', { 'clip-path': 'url(#' + clipId + ')' });
+    addGraticule(proj, graticule);
+    svg.appendChild(graticule);
+
+    svg.appendChild(svgEl('path', { 'class': 'outline', d: d }));
+    plot.appendChild(svg);
+    card.appendChild(plot);
+
+    return card;
+  }
+
+  function buildInfoCard() {
+    var card = document.createElement('article');
+    card.className = 'card info';
+    card.innerHTML =
+      '<h2>判读提示</h2>' +
+      '<ul>' +
+      '<li><b>等距圆柱</b> · 矩形，2:1</li>' +
+      '<li><b>墨卡托</b> · 高矩形，约 2:1.877</li>' +
+      '<li><b>摩尔威特</b> · 椭圆，2:1</li>' +
+      '<li><b>罗宾逊</b> · 弧边鼓形，上下平边</li>' +
+      '<li><b>温克尔三重</b> · 椭圆状，上下平边</li>' +
+      '</ul>' +
+      '<div class="legend">' +
+      '<span><i class="swatch mer"></i>经线 30°</span>' +
+      '<span><i class="swatch par"></i>纬线 30°</span>' +
+      '<span><i class="swatch out"></i>outline</span>' +
+      '</div>' +
+      '<div class="note">五格同比例尺；宽固定为 2。若某格为空框、网线飞出边界或轮廓比例异常，说明投影归一化/裁剪有误。</div>';
+    return card;
+  }
+
+  if (!window.PROJ) {
+    grid.textContent = 'projections.js 未加载';
+    return;
+  }
+
+  for (var i = 0; i < keys.length; i++) {
+    var proj = window.PROJ[keys[i]];
+    if (proj) grid.appendChild(buildCard(proj, i));
+  }
+  grid.appendChild(buildInfoCard());
+})();
+</script>
+</body>
+</html>

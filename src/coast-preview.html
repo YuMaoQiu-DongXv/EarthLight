@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>Earthlight · coast preview (Natural Earth 110m)</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #fff; }
+  svg { display: block; }
+  #coast { fill: none; stroke: #1f1f1f; stroke-width: 0.9; stroke-linejoin: round; stroke-linecap: round; }
+</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <path id="coast" d=""></path>
+</svg>
+<script src="coast.js"></script>
+<script>
+  // Equirectangular projection, wireframe only: lon[-180,180] -> x, lat[90,-90] -> y.
+  var W = 1160, H = 580, X0 = 20, Y0 = 60;
+  var rings = decodeCoast();
+  var d = [];
+  for (var i = 0; i < rings.length; i++) {
+    var ring = rings[i];
+    for (var k = 0; k < ring.length; k++) {
+      var x = X0 + (ring[k][0] + 180) / 360 * W;
+      var y = Y0 + (90 - ring[k][1]) / 180 * H;
+      d.push((k ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1));
+    }
+    d.push('Z');
+  }
+  document.getElementById('coast').setAttribute('d', d.join(''));
+  document.title = 'coast preview · ' + rings.length + ' rings';
+</script>
+</body>
+</html>
