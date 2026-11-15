@@ -5,6 +5,16 @@ Zero-dependency single-file tool for geography teaching: Earth-sun illumination,
 一个零依赖单文件小工具，给地理老师出「地球光照 / 晨昏线 / 太阳视运动 / 世界地图」教学图。
 **双击 `index.html` 即用**：不需要联网、不需要安装，SVG 全部现算现画。
 
+## 效果
+
+| 侧视光照图（叠加大陆轮廓） | 极地俯视 |
+|---|---|
+| ![侧视光照图](docs/globe.png) | ![极地俯视](docs/polar.png) |
+
+| 平面投影（摩尔威特） | 太阳视运动 |
+|---|---|
+| ![平面投影](docs/flat.png) | ![太阳视运动](docs/sky.png) |
+
 ---
 
 ## 四个出图视角
