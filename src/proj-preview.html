@@ -154,10 +154,10 @@
     var maxLat = proj.key === 'mercator' ? 84 : 90;
     var lat, lon, i, pts;
 
-    // 经线：每 30°；采样纬度每 2°。
+    // 经线：每 30°；采样纬度每 2°（-maxLat → +maxLat）。
     for (lon = -180; lon <= 180; lon += 30) {
       pts = [];
-      for (i = 0; i <= maxLat / 2; i++) {
+      for (i = 0; i <= maxLat; i++) {
         lat = -maxLat + i * 2;
         var q = proj.f(lat, lon);
         pts.push([q.x, q.y]);
