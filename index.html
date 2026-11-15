@@ -71,6 +71,20 @@ main{height:calc(100vh - 60px);display:grid;grid-template-columns:336px 1fr}
   font-variant-numeric:tabular-nums;letter-spacing:-.01em;
 }
 .row .v.em{color:var(--acc)}
+
+/* 数字输入框：看着像读数，点进去能改 */
+.numwrap{display:inline-flex;align-items:baseline;gap:0}
+input.num{
+  width:48px;text-align:right;border:0;border-bottom:1px dotted #E3DFD7;background:transparent;
+  padding:0 1px 1px;font-family:var(--mono);font-size:12px;color:var(--ink);
+  font-variant-numeric:tabular-nums;letter-spacing:-.01em;cursor:text;
+  transition:border-color .14s,background .14s;
+}
+input.num.acc{color:var(--acc)}
+input.num:hover{border-bottom-color:var(--ink3);border-bottom-style:solid}
+input.num:focus{outline:0;border-bottom-color:var(--ink);border-bottom-style:solid;background:rgba(23,24,26,.035)}
+input.num.wide-num{width:60px}
+.unit{font-family:var(--mono);font-size:11px;color:var(--ink3);min-width:11px;margin-left:2px}
 .fld{margin-bottom:11px}
 .fld:last-child{margin-bottom:0}
 
@@ -210,8 +224,8 @@ select.wide{width:100%;height:30px;padding:0 8px;font-size:12.5px;color:var(--in
     <div class="grp">
       <div class="glab">太阳</div>
       <div class="fld">
-        <div class="row"><span class="k">直射点纬度 δ</span><span class="v em" id="decV">23.4°N</span></div>
-        <input type="range" id="dec" min="-23.44" max="23.44" step="0.1" value="23.44">
+        <div class="row"><span class="k">直射点纬度 δ</span><span class="numwrap"><input class="num acc" id="decN" inputmode="decimal" aria-label="直射点纬度"><span class="unit" id="decU">°N</span></span></div>
+        <input type="range" id="dec" min="-23.44" max="23.44" step="0.01" value="23.44">
       </div>
       <div class="chips" id="seasonChips">
         <button data-dec="0">春分</button>
@@ -224,7 +238,7 @@ select.wide{width:100%;height:30px;padding:0 8px;font-size:12.5px;color:var(--in
     <div class="grp">
       <div class="glab">直射点经度</div>
       <div class="fld">
-        <div class="row"><span class="k">λs 正午经线</span><span class="v" id="lonSV">0°</span></div>
+        <div class="row"><span class="k">λs 正午经线</span><span class="numwrap"><input class="num" id="lonSN" inputmode="decimal" aria-label="直射点经度"><span class="unit" id="lonSU">°</span></span></div>
         <input type="range" id="lonS" min="-180" max="180" step="1" value="0">
       </div>
     </div>
@@ -232,15 +246,15 @@ select.wide{width:100%;height:30px;padding:0 8px;font-size:12.5px;color:var(--in
     <div class="grp">
       <div class="glab">观测点</div>
       <div class="fld">
-        <div class="row"><span class="k">纬度 φ</span><span class="v" id="latOV">39.9°N</span></div>
-        <input type="range" id="latO" min="-90" max="90" step="0.1" value="39.9">
+        <div class="row"><span class="k">纬度 φ</span><span class="numwrap"><input class="num" id="latON" inputmode="decimal" aria-label="观测点纬度"><span class="unit" id="latOU">°N</span></span></div>
+        <input type="range" id="latO" min="-90" max="90" step="0.01" value="39.9">
       </div>
       <div class="fld">
-        <div class="row"><span class="k">经度 λ</span><span class="v" id="lonOV">116.4°E</span></div>
-        <input type="range" id="lonO" min="-180" max="180" step="1" value="116.4">
+        <div class="row"><span class="k">经度 λ</span><span class="numwrap"><input class="num" id="lonON" inputmode="decimal" aria-label="观测点经度"><span class="unit" id="lonOU">°E</span></span></div>
+        <input type="range" id="lonO" min="-180" max="180" step="0.1" value="116.4">
       </div>
       <div class="fld">
-        <div class="row"><span class="k">地方时 t（可改）</span><span class="v" id="tV">19:46</span></div>
+        <div class="row"><span class="k">地方时 t</span><span class="numwrap"><input class="num wide-num" id="tN" inputmode="numeric" aria-label="地方时"></span></div>
         <input type="range" id="tLocal" min="0" max="24" step="0.25" value="19.75">
       </div>
     </div>
@@ -248,11 +262,11 @@ select.wide{width:100%;height:30px;padding:0 8px;font-size:12.5px;color:var(--in
     <div class="grp" data-tabshow="globe polar">
       <div class="glab">视角</div>
       <div class="fld">
-        <div class="row"><span class="k">观察经度</span><span class="v" id="vLonV">0°</span></div>
+        <div class="row"><span class="k">观察经度</span><span class="numwrap"><input class="num" id="vLonN" inputmode="decimal" aria-label="观察经度"><span class="unit" id="vLonU">°</span></span></div>
         <input type="range" id="vLon" min="-180" max="180" step="1" value="-90">
       </div>
       <div class="fld">
-        <div class="row"><span class="k">观察纬度</span><span class="v" id="vLatV">0°</span></div>
+        <div class="row"><span class="k">观察纬度</span><span class="numwrap"><input class="num" id="vLatN" inputmode="decimal" aria-label="观察纬度"><span class="unit" id="vLatU">°</span></span></div>
         <input type="range" id="vLat" min="-90" max="90" step="1" value="0">
       </div>
       <div class="chips" id="viewChips">
@@ -275,7 +289,7 @@ select.wide{width:100%;height:30px;padding:0 8px;font-size:12.5px;color:var(--in
         </select>
       </div>
       <div class="fld">
-        <div class="row"><span class="k">中央经线 λ₀</span><span class="v" id="cmV">0°</span></div>
+        <div class="row"><span class="k">中央经线 λ₀</span><span class="numwrap"><input class="num" id="cmN" inputmode="decimal" aria-label="中央经线"><span class="unit" id="cmU">°</span></span></div>
         <input type="range" id="cm" min="-180" max="180" step="1" value="0">
       </div>
     </div>
@@ -1454,24 +1468,115 @@ function syncReadouts(){
   if(az0===null){ el.textContent = ph>1 ? "极昼" : "极夜"; el.classList.remove("acc"); }
   else { el.textContent=az0.toFixed(1)+"°"; el.classList.toggle("acc",false); }
 
-  document.getElementById("decV").textContent=fmtLat(S.dec);
-  document.getElementById("lonSV").textContent=fmtLon(S.lonS);
-  document.getElementById("latOV").textContent=fmtLat(S.latO);
-  document.getElementById("lonOV").textContent=fmtLon(S.lonO);
-  document.getElementById("tV").textContent=fmtTime(t);
-  document.getElementById("vLonV").textContent=fmtLon(S.vLon);
-  document.getElementById("vLatV").textContent=fmtLat(S.vLat);
   document.getElementById("tLocal").value=t;
+  syncNum();
 
   // 季节 chips
   document.querySelectorAll("#seasonChips button").forEach(b=>{
     const d=parseFloat(b.dataset.dec);
     b.classList.toggle("on", Math.abs(d-S.dec)<0.26 && (d!==0 || true) && !(d===0&&Math.abs(S.dec)>0.26));
   });
-  const cmV=document.getElementById("cmV");
-  if(cmV) cmV.textContent=fmtLon(S.cm);
   document.querySelectorAll("[data-t]").forEach(cb=>{ cb.checked=!!S.t[cb.dataset.t]; });
-  // 时间标尺同步（避免触发 input）
+}
+
+/* ============================================================
+   数字输入框 ↔ 滑块
+   ============================================================ */
+const NUM_DEF = {
+  dec : {min:-23.44, max:23.44, step:0.1, dp:1, unit:"lat"},
+  lonS: {min:-180,   max:180,   step:1,   dp:0, unit:"lon"},
+  latO: {min:-90,    max:90,    step:0.1, dp:1, unit:"lat"},
+  lonO: {min:-180,   max:180,   step:1,   dp:1, unit:"lon"},
+  vLon: {min:-180,   max:180,   step:1,   dp:0, unit:"lon"},
+  vLat: {min:-90,    max:90,    step:1,   dp:0, unit:"lat"},
+  cm  : {min:-180,   max:180,   step:1,   dp:0, unit:"lon"}
+};
+/** 去掉多余的 0：116.0 → 116，23.44 → 23.4，0 → 0 */
+function numStr(v, dp){
+  let s=Math.abs(v).toFixed(dp);
+  if(s.indexOf(".") >= 0) s=s.replace(/0+$/,"").replace(/\.$/,"");
+  return s;
+}
+function unitOf(kind, v){
+  if(Math.abs(v) < 1e-9) return "°";
+  if(kind === "lat") return v > 0 ? "°N" : "°S";
+  return v > 0 ? "°E" : "°W";
+}
+/** 状态 → 输入框（正在编辑的那一个不覆盖） */
+function syncNum(){
+  for(const k in NUM_DEF){
+    const el=document.getElementById(k+"N");
+    if(!el || document.activeElement===el) continue;
+    const d=NUM_DEF[k], v=S[k];
+    // 输入框显示绝对值，方向由单位后缀承担，避免出现 "-23.4 °S"
+    el.value=numStr(v, d.dp);
+    const u=document.getElementById(k+"U");
+    if(u) u.textContent=unitOf(d.unit, v);
+  }
+  const tn=document.getElementById("tN");
+  if(tn && document.activeElement!==tn) tn.value=fmtTime(localTime());
+}
+function parseTimeStr(s){
+  s=String(s).trim().replace(/：/g,":").replace(/[^\d:.]/g,"");
+  if(/^\d{1,2}:\d{1,2}$/.test(s)){
+    const p=s.split(":").map(Number);
+    return ((p[0]%24)+p[1]/60+24)%24;
+  }
+  const v=parseFloat(s);
+  return isFinite(v) ? ((v%24)+24)%24 : NaN;
+}
+function commitNum(k, raw){
+  const d=NUM_DEF[k];
+  let v=parseFloat(String(raw).replace(/[，,]/g,"."));
+  if(!isFinite(v)){ syncNum(); return; }
+  v=clamp(v, d.min, d.max);
+  S[k]=Math.round(v*Math.pow(10,d.dp))/Math.pow(10,d.dp);
+  syncSliders(); render();
+}
+function wireNum(k){
+  const el=document.getElementById(k+"N");
+  if(!el) return;
+  const d=NUM_DEF[k];
+  el.addEventListener("focus",()=>{ try{ el.select(); }catch(e){} });
+  el.addEventListener("change",()=>commitNum(k, el.value));
+  el.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){ e.preventDefault(); commitNum(k, el.value); el.blur(); }
+    else if(e.key==="Escape"){ e.preventDefault(); el.blur(); }
+    else if(e.key==="ArrowUp" || e.key==="ArrowDown"){
+      e.preventDefault();
+      const step=(e.key==="ArrowUp"?1:-1)*d.step*(e.shiftKey?10:1);
+      S[k]=+clamp(S[k]+step, d.min, d.max).toFixed(d.dp);
+      syncSliders(); render();
+    }
+  });
+  el.addEventListener("blur",()=>{ commitNum(k, el.value); setTimeout(syncNum,0); });
+}
+function wireTimeNum(){
+  const el=document.getElementById("tN");
+  if(!el) return;
+  const apply=()=>{
+    const t=parseTimeStr(el.value);
+    if(!isFinite(t)){ syncNum(); return; }
+    let lo=S.lonS+(t-12)*15;
+    lo=((lo+180)%360+360)%360-180;
+    S.lonO=Math.round(lo*10)/10;
+    syncSliders(); render();
+  };
+  el.addEventListener("focus",()=>{ try{ el.select(); }catch(e){} });
+  el.addEventListener("change",apply);
+  el.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){ e.preventDefault(); apply(); el.blur(); }
+    else if(e.key==="Escape"){ e.preventDefault(); el.blur(); }
+    else if(e.key==="ArrowUp" || e.key==="ArrowDown"){
+      e.preventDefault();
+      const t=localTime()+(e.key==="ArrowUp"?0.25:-0.25);
+      let lo=S.lonS+(((t%24)+24)%24-12)*15;
+      lo=((lo+180)%360+360)%360-180;
+      S.lonO=Math.round(lo*10)/10;
+      syncSliders(); render();
+    }
+  });
+  el.addEventListener("blur",()=>{ apply(); setTimeout(syncNum,0); });
 }
 
 /* ============================================================
@@ -1533,7 +1638,7 @@ function bind(){
     const t=parseFloat(tL.value);
     let lo=S.lonS+(t-12)*15;
     while(lo>180) lo-=360; while(lo<-180) lo+=360;
-    S.lonO=Math.round(lo);
+    S.lonO=Math.round(lo*10)/10;
     syncSliders(); render();
   });
 
@@ -1589,6 +1694,9 @@ function bind(){
   document.getElementById("btnSvg").addEventListener("click",doSVG);
   document.getElementById("btnPng").addEventListener("click",()=>doPNG(false));
   document.getElementById("btnCopy").addEventListener("click",()=>doPNG(true));
+
+  for(const k in NUM_DEF) wireNum(k);
+  wireTimeNum();
 
   window.addEventListener("resize",()=>{});
 }
@@ -1687,3 +1795,5 @@ render();
 </script>
 </body>
 </html>
+
+
